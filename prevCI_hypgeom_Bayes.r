@@ -116,5 +116,3 @@ prevCI.hypgeom.Bayes <- function(N, n, n_pos, Se, Sp, cred.level = 0.95, prior =
                  HDCredibleInterval = CI_hdi,
                  plot = plot, posterior = df))
 }
-
-prevCI.hypgeom.Bayes(50,50,50,1,1)
