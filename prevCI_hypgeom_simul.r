@@ -1,7 +1,8 @@
-prevCI.hypgeom.simul <- function(N, n, n_pos, Se, Sp, conf.level = 0.95, alt = "two.sided",
+prevCI.hypgeom.simul <- function(N, n, n_pos, Se, Sp,
+                                 conf.level = 0.95, alt = "two.sided",
                                  R = 1000){
   # Description
-  # Calculates approximate confidence interval (CI) from simulation
+  # This function calculates approximate confidence interval (CI) from simulation
   # for the prevalence, assuming sampling without replacement from a
   # finite population, that is, using the hypergeometrical model, and
   # allowing for misclassification with known sensitivity and specificity.
@@ -135,3 +136,4 @@ prevCI.hypgeom.simul <- function(N, n, n_pos, Se, Sp, conf.level = 0.95, alt = "
   
   return(result)
 }
+
