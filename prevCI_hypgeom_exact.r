@@ -1,10 +1,11 @@
-prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp, conf.level = 0.95, alt = "two.sided") {
+prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp,
+                                 conf.level = 0.95, alt = "two.sided") {
   # Description
-  # Calculates exact Clopper-Pearson and Blaker type confidence intervals (CIs)
-  # for the true prevalence, assuming sampling without replacement from a
-  # finite population, that is, using the hypergeometrical model, and
-  # allowing for misclassification with known sensitivity and specificity.
-  # Also provides point estimate of true prevalence.
+  # This function calculates exact Clopper-Pearson and Blaker type confidence
+  # intervals (CIs) for the true prevalence, assuming sampling without
+  # replacement from a finite population, that is, using the hypergeometrical
+  # model, and allowing for misclassification with known sensitivity and
+  # specificity. Also provides point estimate of true prevalence.
   
   # Arguments
   # N: size of the population
@@ -254,3 +255,4 @@ prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp, conf.level = 0.95, alt = "
   
   return(result)
 }
+
