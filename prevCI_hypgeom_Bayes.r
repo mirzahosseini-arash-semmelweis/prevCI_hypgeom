@@ -1,6 +1,7 @@
-prevCI.hypgeom.Bayes <- function(N, n, n_pos, Se, Sp, cred.level = 0.95, prior = rep(1, N + 1)) {
+prevCI.hypgeom.Bayes <- function(N, n, n_pos, Se, Sp,
+                                 cred.level = 0.95, prior = rep(1, N + 1)) {
   # Description
-  # Calculates Bayesian credible interval (CI)
+  # This function calculates Bayesian credible interval (CI)
   # for the true prevalence, assuming sampling without replacement from a
   # finite population, that is, using the hypergeometrical model, and
   # allowing for misclassification with known sensitivity and specificity.
@@ -116,3 +117,4 @@ prevCI.hypgeom.Bayes <- function(N, n, n_pos, Se, Sp, cred.level = 0.95, prior =
                  HDCredibleInterval = CI_hdi,
                  plot = plot, posterior = df))
 }
+
