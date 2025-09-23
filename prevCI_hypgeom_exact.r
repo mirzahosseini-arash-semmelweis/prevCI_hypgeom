@@ -45,7 +45,7 @@ prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp,
   if (Se < 0.5 | Se > 1 | Sp < 0.5 | Sp > 1) {stop("Se and Sp must be in [0.5, 1].")}
   if (conf.level <= 0 | conf.level >= 1) {stop("Confidence level must be in (0, 1).")}
   
-  # set alpha; for alt "two.sided" alpha will actually be alpha/2 for clearer coding
+  # set alpha; for alt "two.sided" alpha will actually be signf.level/2 for clearer coding
   if (alt == "two.sided") {
     alpha <- (1 - conf.level)/2
   } else {
@@ -255,4 +255,5 @@ prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp,
   
   return(result)
 }
+
 
