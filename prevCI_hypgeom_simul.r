@@ -46,7 +46,7 @@ prevCI.hypgeom.simul <- function(N, n, n_pos, Se, Sp,
   if (conf.level <= 0 | conf.level >= 1) {stop("Confidence level must be in (0, 1).")}
   
   # set alpha, thresholds and safe initialization
-  # for alt "two.sided" alpha will actually be alpha/2 for clearer coding
+  # for alt "two.sided" alpha will actually be signf.level/2 for clearer coding
   if (alt == "two.sided") {
     alpha <- (1 - conf.level)/2
   } else {
@@ -136,4 +136,5 @@ prevCI.hypgeom.simul <- function(N, n, n_pos, Se, Sp,
   
   return(result)
 }
+
 
