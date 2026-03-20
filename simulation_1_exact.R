@@ -1,29 +1,42 @@
-evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 1000) {
+library(dplyr)
+library(parallel)
+library(data.table)
+source("BinomialConfintSeSp.R")
+source("prevCI_Ge2024.R")
+source("prevCI_Ge2024_mod.R")
+source("prevCI_hypgeom_exact.r")
+source("prevCI_hypgeom_simul.r")
+source("prevCI_hypgeom_Bayes.r")
+
+evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 5000) {
   true_sick <- round(N*true_prev)
   
   contains_true_exact_CP <- numeric(B)
-  widths_exact_CP <- numeric(B)
-  contains_true_exact_B <- numeric(B)
-  widths_exact_B <- numeric(B)
-  loc_exact <- numeric(B)
+  widths_exact_CP        <- numeric(B)
+  contains_true_exact_B  <- numeric(B)
+  widths_exact_B         <- numeric(B)
+  loc_exact              <- numeric(B)
   contains_true_simul_CP <- numeric(B)
-  widths_simul_CP <- numeric(B)
-  contains_true_simul_B <- numeric(B)
-  widths_simul_B <- numeric(B)
-  loc_simul <- numeric(B)
-  contains_true_Bayes <- numeric(B)
-  widths_Bayes <- numeric(B)
-  loc_Bayes <- numeric(B)
-  RoganGladen <- numeric(B)
-  contains_true_FPC <- numeric(B)
-  widths_FPC <- numeric(B)
-  contains_true_Ge <- numeric(B)
-  widths_Ge <- numeric(B)
-  loc_Ge <- numeric(B)
+  widths_simul_CP        <- numeric(B)
+  contains_true_simul_B  <- numeric(B)
+  widths_simul_B         <- numeric(B)
+  loc_simul              <- numeric(B)
+  contains_true_Bayes    <- numeric(B)
+  widths_Bayes           <- numeric(B)
+  loc_Bayes              <- numeric(B)
+  RoganGladen            <- numeric(B)
+  contains_true_FPC      <- numeric(B)
+  widths_FPC             <- numeric(B)
+  contains_true_Ge       <- numeric(B)
+  widths_Ge              <- numeric(B)
+  loc_Ge                 <- numeric(B)
+  contains_true_Ge_mod   <- numeric(B)
+  widths_Ge_mod          <- numeric(B)
+  loc_Ge_mod             <- numeric(B)
   contains_true_binom_CP <- numeric(B)
-  widths_binom_CP <- numeric(B)
-  contains_true_binom_B <- numeric(B)
-  widths_binom_B <- numeric(B)
+  widths_binom_CP        <- numeric(B)
+  contains_true_binom_B  <- numeric(B)
+  widths_binom_B         <- numeric(B)
   
   for (b in 1:B) {
     # uniform random sampling of size n is taken from population of size N without replacement
@@ -37,13 +50,24 @@ evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 1000) {
     FP <- rbinom(1, n - sampled_sick, 1 - Sp)
     observed_pos <- TP + FP
     
-    CI_exact <- prevCI.hypgeom.exact(N, n, observed_pos, Se, Sp)
-    CI_simul <- prevCI.hypgeom.simul(N, n, observed_pos, Se, Sp)
-    CI_Bayes <- prevCI.hypgeom.Bayes(N, n, observed_pos, Se, Sp)
-    CI_FPC <- RS_Wald(N, n, observed_pos, Se, Sp)
-    CI_Ge <- RS_BC(N, n, observed_pos, Se, Sp)
-    CI_binom_CP <- BinomialConfIntSeSp(n = n, y = observed_pos, alt = "two.sided", met = "Clopper-Pearson", Se = Se, Sp = Sp)
-    CI_binom_B <- BinomialConfIntSeSp(n = n, y = observed_pos, alt = "two.sided", met = "Blaker", Se = Se, Sp = Sp)
+    CI_exact    <- prevCI.hypgeom.exact(N, n, observed_pos, Se, Sp)
+    CI_simul    <- prevCI.hypgeom.simul(N, n, observed_pos, Se, Sp)
+    CI_Bayes    <- prevCI.hypgeom.Bayes(N, n, observed_pos, Se, Sp)
+    CI_FPC      <- RS_Wald(N, n, observed_pos, Se, Sp)
+    CI_Ge       <- RS_BC(N, n, observed_pos, Se, Sp)
+    CI_Ge_mod   <- RS_BC_mod(N, n, observed_pos, Se, Sp)
+    CI_binom_CP <- BinomialConfIntSeSp(
+      n = n,
+      y = observed_pos,
+      Se = Se, Sp = Sp,
+      alt = "two.sided", met = "Clopper-Pearson", conf.level = 0.95
+    )
+    CI_binom_B  <- BinomialConfIntSeSp(
+      n = n,
+      y = observed_pos,
+      Se = Se, Sp = Sp,
+      alt = "two.sided", met = "Blaker", conf.level = 0.95
+    )
     
     contains_true_exact_CP[b] <- (true_prev >= CI_exact$ClopperPearson[1]) &
                                  (true_prev <= CI_exact$ClopperPearson[2])
@@ -71,6 +95,9 @@ evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 1000) {
     contains_true_Ge[b] <- (true_prev >= CI_Ge$BC_lower) & (true_prev <= CI_Ge$BC_upper)
     widths_Ge[b] <- CI_Ge$BC_width
     loc_Ge[b] <- CI_Ge$BC_median
+    contains_true_Ge_mod[b] <- (true_prev >= CI_Ge_mod$BC_lower) & (true_prev <= CI_Ge_mod$BC_upper)
+    widths_Ge_mod[b] <- CI_Ge_mod$BC_width
+    loc_Ge_mod[b] <- CI_Ge_mod$BC_median
     
     contains_true_binom_CP[b] <- (true_prev >= CI_binom_CP[1]) & (true_prev <= CI_binom_CP[2])
     widths_binom_CP[b] <- CI_binom_CP[2] - CI_binom_CP[1]
@@ -116,6 +143,11 @@ evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 1000) {
     width_Ge_sd = sd(widths_Ge),
     loc_Ge_mean = mean(loc_Ge),
     loc_Ge_sd = sd(loc_Ge),
+    coverage_Ge_mod_mean = mean(contains_true_Ge_mod),
+    width_Ge_mod_mean = mean(widths_Ge_mod),
+    width_Ge_mod_sd = sd(widths_Ge_mod),
+    loc_Ge_mod_mean = mean(loc_Ge_mod),
+    loc_Ge_mod_sd = sd(loc_Ge_mod),
     coverage_binom_CP_mean = mean(contains_true_binom_CP),
     width_binom_CP_mean = mean(widths_binom_CP),
     width_binom_CP_sd = sd(widths_binom_CP),
@@ -125,15 +157,13 @@ evaluate_prevCI_hypgeom <- function(N, n, true_prev, Se, Sp, B = 1000) {
   )
 }
 
-################################################################################
-
 run_sim_grid_parallel <- function(
-    N = 300,
+    N = 100,
     prev_seq = seq(0.01, 0.5, length = 2),
     n_seq = c(10, 30),
     Se_seq = c(0.9, 0.99),
     Sp_seq = c(0.9, 0.99),
-    B = 500,
+    B = 5000,
     cores = detectCores() - 1
 ) {
   library(parallel)
@@ -165,6 +195,7 @@ run_sim_grid_parallel <- function(
                                 "prevCI.hypgeom.Bayes",
                                 "RS_Wald",
                                 "RS_BC",
+                                "RS_BC_mod",
                                 "BinomialConfIntSeSp"), envir = environment())
   results <- parLapply(cl, split(grid, seq(nrow(grid))), function(row) wrapper(unlist(row)))
   stopCluster(cl)
@@ -172,3 +203,31 @@ run_sim_grid_parallel <- function(
   sim_data <- do.call(rbind, results)
   return(sim_data)
 }
+
+sim_data_N50 <- run_sim_grid_parallel(
+  N = 50,
+  prev_seq = c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5),
+  n_seq = c(5, 10, 25),
+  Se_seq = c(0.8, 0.9, 0.95, 0.99),
+  Sp_seq = c(0.8, 0.9, 0.95, 0.99),
+  B = 5e3
+)
+sim_data_N100 <- run_sim_grid_parallel(
+  N = 100,
+  prev_seq = c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5),
+  n_seq = c(10, 20, 50),
+  Se_seq = c(0.8, 0.9, 0.95, 0.99),
+  Sp_seq = c(0.8, 0.9, 0.95, 0.99),
+  B = 5e3
+)
+sim_data_N200 <- run_sim_grid_parallel(
+  N = 200,
+  prev_seq = c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5),
+  n_seq = c(20, 40, 100),
+  Se_seq = c(0.8, 0.9, 0.95, 0.99),
+  Sp_seq = c(0.8, 0.9, 0.95, 0.99),
+  B = 5e3
+)
+
+sim_data_1_exact <- bind_rows(sim_data_N50, sim_data_N100, sim_data_N200)
+fwrite(sim_data_1_exact, "sim_data_1_exact.csv")
