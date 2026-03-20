@@ -256,4 +256,13 @@ prevCI.hypgeom.exact <- function(N, n, n_pos, Se, Sp,
   return(result)
 }
 
-
+# Example run
+prevCI.hypgeom.exact(
+  N     = 100,
+  n     = 50,
+  n_pos = 25,
+  Se    = 0.9,
+  Sp    = 0.99,
+  conf.level = 0.95,
+  alt = "two.sided"
+)
